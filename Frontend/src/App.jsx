@@ -12,6 +12,7 @@ import AddItinary from './Pages/AddItinary';
 import Itinerary from './Pages/Itinerary';
 import UpdateItinerary from './Pages/UpdateItinerary';
 import TravelPlanningApp from './Pages/TravelPlanningApp';
+import Expenses from './Pages/Expense';
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
 
         <Route element={<PrivateRoute/>}>
           <Route path="/dashboard" element={<DashBoard/>}/>
+          <Route path="/expense" element={<Expenses/>}/>
         </Route>
 
         <Route element={<OnlyAdminPrivateRoute/>}>
