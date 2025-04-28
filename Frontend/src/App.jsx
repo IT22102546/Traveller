@@ -13,6 +13,7 @@ import UpdateItinerary from './Pages/UpdateItinerary';
 import TravelPlanningApp from './Pages/TravelPlanningApp';
 import Expenses from './Pages/Expense';
 import OrderSummary from './Pages/OrderSummary';
+import Payment from './Pages/Payment';
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="/dashboard" element={<DashBoard/>}/>
           <Route path="/expense" element={<Expenses/>}/>
           <Route path="/order/:id" element={<OrderSummary/>} />
+          <Route path="/payment/:orderId" element={<Payment />} />
         </Route>
 
         <Route element={<OnlyAdminPrivateRoute/>}>

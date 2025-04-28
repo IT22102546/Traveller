@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import DashSideBar from "../Components/DashSideBar";
 import DashProfile from "../Components/DashProfile";
 import DashItinary from "../Components/DashItinary";
+import MyPayments from "../Components/MyPayments";
 
 
 
@@ -29,6 +30,7 @@ export default function DashBoard() {
       </div>
       {tab==='profile' && <DashProfile/>}
       {tab==='itinary' && <DashItinary/>}
+      {tab==='mypayments' && <MyPayments/>}
    
    
       
