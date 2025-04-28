@@ -94,34 +94,53 @@ export default function OrderSummary() {
       setSelectedUsers(selectedUsers.filter(id => id !== userId));
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     try {
       const costPerPerson = parseFloat(itinerary.averageCost.replace(/[^0-9.]/g, ''));
       const totalAmount = costPerPerson * formData.numberOfMembers;
-
+  
+      // Prepare member details (simplified from your original)
+      const memberDetails = selectedUsers.map(userId => {
+        const user = allUsers.find(u => u._id === userId);
+        return {
+          userId: user._id,
+          username: user.username,
+          email: user.email,
+          paymentStatus: 'pending'
+        };
+      });
+  
       const orderData = {
-        itinerary: id,
+        itinerary: itinerary._id, // Just send the ID, let backend populate
         date: formData.date,
         numberOfMembers: formData.numberOfMembers,
-        members: selectedUsers,
+        members: memberDetails,
         totalAmount,
-        createdBy: currentUser._id,
+        createdBy: currentUser._id
       };
-
-      const res = await fetch('/api/orders', {
+  
+      // Make the API call to create the order
+      const response = await fetch('/api/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}` // Add auth token
+        },
+        body: JSON.stringify(orderData)
       });
-
-      if (res.ok) {
-        const order = await res.json();
-        navigate(`/payment/${order._id}`);
+  
+      if (!response.ok) {
+        throw new Error('Failed to create order');
       }
+  
+      const createdOrder = await response.json();
+      navigate(`/payment/${createdOrder._id}`); // Navigate to payment with order ID
+  
     } catch (error) {
-      console.error('Error creating order:', error);
+      console.error('Order creation failed:', error);
+      // Add error handling UI here
     }
   };
 
@@ -253,7 +272,7 @@ export default function OrderSummary() {
           type="submit"
           color="success"
           className="w-full"
-          disabled={!isFormValid()} 
+          disabled={!isFormValid()} // ✅ disable button if form invalid
         >
           Proceed to Payment
         </Button>

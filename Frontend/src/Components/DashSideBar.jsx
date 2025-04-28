@@ -1,6 +1,6 @@
 import { Sidebar } from "flowbite-react";
 import { useEffect, useState } from "react";
-import {  HiArrowSmRight, HiFlag, HiUser } from 'react-icons/hi';
+import {  HiArrowSmRight, HiCurrencyDollar, HiCurrencyRupee, HiFlag, HiUser } from 'react-icons/hi';
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
 import { signOut } from "../redux/user/userSlice";
@@ -45,6 +45,16 @@ export default function DashSideBar() {
               as='div'
             >
               Profile
+            </Sidebar.Item>
+          </Link>
+          <Link to='/dashboard?tab=mypayments' key="mypayments">
+            <Sidebar.Item 
+              active={tab === 'mypayments'} 
+              icon={HiCurrencyDollar} 
+              labelColor='dark'
+              as='div'
+            >
+              My Payments
             </Sidebar.Item>
           </Link>
 
