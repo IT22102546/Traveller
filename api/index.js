@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import authRoute from "./routes/auth.route.js";
 import userRoute from "./routes/user.route.js";
 import itineraryRoute from "./routes/itinerary.route.js";
+import expenseRoute from "./routes/expense.route.js";
 
 
 dotenv.config();
@@ -33,6 +34,7 @@ app.use(cors(corsOptions));
 app.use("/api/auth",authRoute);
 app.use("/api/user",userRoute); 
 app.use("/api/itinary",itineraryRoute); 
+app.use("/api/expense", expenseRoute);
 
 
 

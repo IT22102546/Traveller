@@ -54,6 +54,9 @@ export default function Header() {
             <NavLink to="/itinerary" className={({ isActive }) => isActive ? "text-black" : "text-white"}>
               Travel Itinerary
             </NavLink>
+            <NavLink to="/expense" className={({ isActive }) => isActive ? "text-black" : "text-white"}>
+              Travel Expenses
+            </NavLink>
 
             <NavLink to="/prediction" className={({ isActive }) => isActive ? "text-black" : "text-white"}>
               Activity Predictor
