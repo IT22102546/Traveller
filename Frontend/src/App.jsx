@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './Pages/Home';
@@ -13,6 +12,7 @@ import Itinerary from './Pages/Itinerary';
 import UpdateItinerary from './Pages/UpdateItinerary';
 import TravelPlanningApp from './Pages/TravelPlanningApp';
 import Expenses from './Pages/Expense';
+import OrderSummary from './Pages/OrderSummary';
 
 export default function App() {
   return (
@@ -28,6 +28,7 @@ export default function App() {
         <Route element={<PrivateRoute/>}>
           <Route path="/dashboard" element={<DashBoard/>}/>
           <Route path="/expense" element={<Expenses/>}/>
+          <Route path="/order/:id" element={<OrderSummary/>} />
         </Route>
 
         <Route element={<OnlyAdminPrivateRoute/>}>

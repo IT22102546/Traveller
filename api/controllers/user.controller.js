@@ -80,6 +80,15 @@ export const signout = (req, res, next) => {
   }
 };
 
+export const getUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, 'username email '); 
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json(error);
+  }
+};
+
 
 
 
