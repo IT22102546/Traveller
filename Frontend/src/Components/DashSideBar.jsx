@@ -1,6 +1,13 @@
 import { Sidebar } from "flowbite-react";
 import { useEffect, useState } from "react";
-import {  HiArrowSmRight, HiCurrencyDollar, HiCurrencyRupee, HiFlag, HiUser } from 'react-icons/hi';
+import {
+  HiArrowSmRight,
+  HiBookmark,
+  HiCurrencyDollar,
+  HiCurrencyRupee,
+  HiFlag,
+  HiUser,
+} from "react-icons/hi";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
 import { signOut } from "../redux/user/userSlice";
@@ -10,13 +17,13 @@ export default function DashSideBar() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { currentUser } = useSelector(state => state.user);
+  const { currentUser } = useSelector((state) => state.user);
   const location = useLocation();
   const [tab, setTab] = useState();
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
-    const tabFromUrl = urlParams.get('tab');
+    const tabFromUrl = urlParams.get("tab");
     if (tabFromUrl) {
       setTab(tabFromUrl);
     }
@@ -24,9 +31,9 @@ export default function DashSideBar() {
 
   const handleSignOut = async () => {
     try {
-      await fetch('/api/user/signout');
+      await fetch("/api/user/signout");
       dispatch(signOut());
-      navigate('/');
+      navigate("/");
     } catch (error) {
       console.log(error);
     }
@@ -36,23 +43,24 @@ export default function DashSideBar() {
     <Sidebar className="w-full md:w-56">
       <Sidebar.Items>
         <Sidebar.ItemGroup>
-          <Link to='/dashboard?tab=profile' key="profile">
-            <Sidebar.Item 
-              active={tab === 'profile'} 
-              icon={HiUser} 
-              label={currentUser?.isAdmin ? 'Admin' : 'User'} 
-              labelColor='dark'
-              as='div'
+          <h1 className="text-[10px]">USER</h1>
+          <Link to="/dashboard?tab=profile" key="profile">
+            <Sidebar.Item
+              active={tab === "profile"}
+              icon={HiUser}
+              label={currentUser?.isAdmin ? "Admin" : "User"}
+              labelColor="dark"
+              as="div"
             >
               Profile
             </Sidebar.Item>
           </Link>
-          <Link to='/dashboard?tab=mypayments' key="mypayments">
-            <Sidebar.Item 
-              active={tab === 'mypayments'} 
-              icon={HiCurrencyDollar} 
-              labelColor='dark'
-              as='div'
+          <Link to="/dashboard?tab=mypayments" key="mypayments">
+            <Sidebar.Item
+              active={tab === "mypayments"}
+              icon={HiCurrencyDollar}
+              labelColor="dark"
+              as="div"
             >
               My Payments
             </Sidebar.Item>
@@ -60,22 +68,29 @@ export default function DashSideBar() {
 
           {currentUser?.isAdmin && (
             <>
-             
-              <Link to='/dashboard?tab=itinary' key="itinary">
-                <Sidebar.Item
-                  active={tab === 'itinary'}
-                  icon={HiFlag}
-                  as='div'
-                >
+              <hr />
+              <h1 className="text-[10px]">ADMIN</h1>
+              <Link to="/dashboard?tab=itinary" key="itinary">
+                <Sidebar.Item active={tab === "itinary"} icon={HiFlag} as="div">
                   Trip Itinaries
+                </Sidebar.Item>
+              </Link>
+
+              <Link to="/dashboard?tab=fullpayrecieved" key="fullpayrecieved">
+                <Sidebar.Item
+                  active={tab === "fullpayrecieved"}
+                  icon={HiBookmark}
+                  as="div"
+                >
+                  Trip Full Payment
                 </Sidebar.Item>
               </Link>
             </>
           )}
 
-          <Sidebar.Item 
-            icon={HiArrowSmRight} 
-            className="cursor-pointer" 
+          <Sidebar.Item
+            icon={HiArrowSmRight}
+            className="cursor-pointer"
             onClick={handleSignOut}
             key="signout"
           >
@@ -85,5 +100,4 @@ export default function DashSideBar() {
       </Sidebar.Items>
     </Sidebar>
   );
-
 }

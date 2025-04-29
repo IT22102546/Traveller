@@ -1,10 +1,10 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema(
   {
     itinerary: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Itinerary',
+      ref: "Itinerary",
       required: true,
     },
     date: {
@@ -20,17 +20,21 @@ const orderSchema = new mongoose.Schema(
       {
         userId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: 'User',
+          ref: "User",
           required: true,
         },
         username: String,
         email: String,
         paymentStatus: {
           type: String,
-          enum: ['pending', 'paid'],
-          default: 'pending',
+          enum: ["pending", "paid"],
+          default: "pending",
         },
         paymentSlip: String,
+        paymentShare: {
+          type: Number,
+          required: true,
+        },
       },
     ],
     totalAmount: {
@@ -39,20 +43,18 @@ const orderSchema = new mongoose.Schema(
     },
     orderStatus: {
       type: String,
-      enum: ['pending', 'partial', 'completed'],
-      default: 'pending',
+      enum: ["pending", "partial", "completed"],
+      default: "pending",
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
   },
   { timestamps: true }
 );
 
-
-
-const Order = mongoose.model('Order', orderSchema);
+const Order = mongoose.model("Order", orderSchema);
 
 export default Order;
