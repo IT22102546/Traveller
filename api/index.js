@@ -8,6 +8,7 @@ import userRoute from "./routes/user.route.js";
 import itineraryRoute from "./routes/itinerary.route.js";
 import expenseRoute from "./routes/expense.route.js";
 import orderRoutes from "./routes/order.route.js";
+import recomandationRoutes from "./routes/recomandation.route.js";
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.use("/api/user", userRoute);
 app.use("/api/itinary", itineraryRoute);
 app.use("/api/expense", expenseRoute);
 app.use("/api/orders", orderRoutes);
+app.use("/api/recomandation", recomandationRoutes);
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
