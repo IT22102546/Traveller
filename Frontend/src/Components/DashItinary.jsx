@@ -13,17 +13,19 @@ export default function DashItinary() {
 
   useEffect(() => {
     const fetchItineraries = async () => {
-        try {
-          const res = await fetch(`/api/itinary?searchTerm=${searchTerm}`);
-          const data = await res.json();
-          if (res.ok) {
-            const sortedData = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-            setItineraries(sortedData);
-          }
-        } catch (error) {
-          console.error('Error fetching itineraries:', error);
+      try {
+        const res = await fetch(`/api/itinary?searchTerm=${searchTerm}`);
+        const data = await res.json();
+        if (res.ok) {
+          const sortedData = data.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          );
+          setItineraries(sortedData);
         }
-      };
+      } catch (error) {
+        console.error("Error fetching itineraries:", error);
+      }
+    };
     fetchItineraries();
   }, [searchTerm]);
 
@@ -34,7 +36,9 @@ export default function DashItinary() {
         method: "DELETE",
       });
       if (res.ok) {
-        setItineraries((prev) => prev.filter((itinerary) => itinerary._id !== itineraryIdToDelete));
+        setItineraries((prev) =>
+          prev.filter((itinerary) => itinerary._id !== itineraryIdToDelete)
+        );
       }
     } catch (error) {
       console.log(error.message);
@@ -46,8 +50,8 @@ export default function DashItinary() {
   };
 
   return (
-    <div className='table-auto overflow-x-scroll md:mx-auto p-3'>
-      <div className='flex justify-between mb-2'>
+    <div className="table-auto overflow-x-scroll md:mx-auto p-3 mt-10">
+      <div className="flex justify-between mb-2">
         <input
           type="text"
           placeholder="Search Itineraries.."
@@ -70,23 +74,36 @@ export default function DashItinary() {
             <Table.HeadCell>Edit</Table.HeadCell>
           </Table.Head>
           {itineraries.map((itinerary) => (
-            <Table.Body className='divide-y' key={itinerary._id}>
+            <Table.Body className="divide-y" key={itinerary._id}>
               <Table.Row>
                 <Table.Cell>{itinerary.title}</Table.Cell>
                 <Table.Cell>{itinerary.categories.join(", ")}</Table.Cell>
                 <Table.Cell>
-                  <img src={itinerary.image} alt={itinerary.title} className="w-20 h-10 object-cover" />
+                  <img
+                    src={itinerary.image}
+                    alt={itinerary.title}
+                    className="w-20 h-10 object-cover"
+                  />
                 </Table.Cell>
                 <Table.Cell>{itinerary.averageTime}</Table.Cell>
                 <Table.Cell>{itinerary.averageCost}</Table.Cell>
                 <Table.Cell>{itinerary.location}</Table.Cell>
                 <Table.Cell>
-                  <span className='text-red-500 cursor-pointer' onClick={() => { setShowModal(true); setItineraryIdToDelete(itinerary._id); }}>
+                  <span
+                    className="text-red-500 cursor-pointer"
+                    onClick={() => {
+                      setShowModal(true);
+                      setItineraryIdToDelete(itinerary._id);
+                    }}
+                  >
                     Delete
                   </span>
                 </Table.Cell>
                 <Table.Cell>
-                  <Link className='text-teal-500' to={`/update-itinerary/${itinerary._id}`}>
+                  <Link
+                    className="text-teal-500"
+                    to={`/update-itinerary/${itinerary._id}`}
+                  >
                     Edit
                   </Link>
                 </Table.Cell>
@@ -97,18 +114,25 @@ export default function DashItinary() {
       ) : (
         <p>No itineraries available</p>
       )}
-      <Modal show={showModal} onClose={() => setShowModal(false)} popup size='md'>
+      <Modal
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        popup
+        size="md"
+      >
         <Modal.Header />
         <Modal.Body>
           <div className="text-center">
             <HiOutlineExclamationCircle className="h-14 w-14 text-gray-400 mb-4 mx-auto" />
-            <h3 className="mb-5 text-lg">Are you sure you want to delete this itinerary?</h3>
+            <h3 className="mb-5 text-lg">
+              Are you sure you want to delete this itinerary?
+            </h3>
           </div>
-          <div className='flex justify-center gap-4'>
-            <Button color='failure' onClick={handleDeleteItinerary}>
+          <div className="flex justify-center gap-4">
+            <Button color="failure" onClick={handleDeleteItinerary}>
               Yes, delete it
             </Button>
-            <Button color='gray' onClick={() => setShowModal(false)}>
+            <Button color="gray" onClick={() => setShowModal(false)}>
               Cancel
             </Button>
           </div>
