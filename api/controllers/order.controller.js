@@ -216,24 +216,103 @@ export const getUserPayments = async (req, res, next) => {
 
 export const getPendingOrdersWithPaidMembers = async (req, res, next) => {
   try {
-    // Find all orders where the order status is 'pending' and any member has paymentStatus 'paid'
     const orders = await Order.find({
-      orderStatus: "pending", // Filter orders that are still pending
-      "members.paymentStatus": "paid", // At least one member must have 'paid' status
+      orderStatus: "pending", // Must be pending
+      "members.paymentStatus": { $ne: "pending" }, // Ensure all members are paid
+      $expr: {
+        $eq: [
+          {
+            $size: {
+              $filter: {
+                input: "$members",
+                as: "member",
+                cond: { $ne: ["$$member.paymentStatus", "paid"] },
+              },
+            },
+          },
+          0,
+        ],
+      },
     })
-      .populate("itinerary", "title image location") // Populate itinerary details
-      .populate("createdBy", "username email") // Populate the creator's details
-      .select("orderStatus members totalAmount createdBy date itinerary"); // Select relevant fields
+      .populate("itinerary", "title image location")
+      .populate("createdBy", "username email")
+      .select("orderStatus members totalAmount createdBy date itinerary");
 
-    // If no orders are found, return a 404 status
     if (!orders || orders.length === 0) {
       return res.status(404).json({ message: "No matching orders found" });
     }
 
-    // Return the found orders
     res.status(200).json({ orders });
   } catch (error) {
     console.error("Error fetching orders:", error);
+    next(error);
+  }
+};
+
+export const markOrderAsPaid = async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Check if all members have paid
+    const allPaid = order.members.every(
+      (member) => member.paymentStatus === "paid"
+    );
+
+    if (!allPaid) {
+      return res.status(400).json({ message: "Not all members have paid." });
+    }
+
+    order.orderStatus = "completed";
+    const updatedOrder = await order.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Order marked as paid successfully",
+      data: updatedOrder,
+    });
+  } catch (error) {
+    console.error("Error in markOrderAsPaid:", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
+};
+
+export const getCompletedOrders = async (req, res, next) => {
+  try {
+    const orders = await Order.find({ orderStatus: "completed" })
+      .populate("itinerary", "title image location")
+      .populate("createdBy", "username email")
+      .select("orderStatus members totalAmount createdBy date itinerary");
+
+    if (!orders || orders.length === 0) {
+      return res.status(404).json({ message: "No completed orders found" });
+    }
+
+    res.status(200).json({ orders });
+  } catch (error) {
+    console.error("Error fetching completed orders:", error);
+    next(error);
+  }
+};
+
+export const deleteOrder = async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+    const deletedOrder = await Order.findByIdAndDelete(orderId);
+
+    if (!deletedOrder) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.status(200).json({ message: "Order deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting order:", error);
     next(error);
   }
 };

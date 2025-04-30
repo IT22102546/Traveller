@@ -5,6 +5,7 @@ import DashProfile from "../Components/DashProfile";
 import DashItinary from "../Components/DashItinary";
 import MyPayments from "../Components/MyPayments";
 import FullPaymentRecievedTrips from "../Components/FullPaymentRecievedTrips";
+import DashCompletedOrders from "../Components/DashCompletedOrders";
 
 export default function DashBoard() {
   const location = useLocation();
@@ -27,6 +28,7 @@ export default function DashBoard() {
       {tab === "itinary" && <DashItinary />}
       {tab === "mypayments" && <MyPayments />}
       {tab === "fullpayrecieved" && <FullPaymentRecievedTrips />}
+      {tab === "completedorders" && <DashCompletedOrders />}
     </div>
   );
 }
