@@ -57,6 +57,7 @@ export default function DashSideBar() {
               Profile
             </Sidebar.Item>
           </Link>
+          
           <Link to="/dashboard?tab=mypayments" key="mypayments">
             <Sidebar.Item
               active={tab === "mypayments"}

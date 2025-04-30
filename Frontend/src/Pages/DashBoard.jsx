@@ -24,7 +24,7 @@ export default function DashBoard() {
       <div className="md:w-56">
         <DashSideBar />
       </div>
-      {tab === "profile" && <DashProfile />}
+      {tab === "profile" && <DashProfile/>}
       {tab === "itinary" && <DashItinary />}
       {tab === "mypayments" && <MyPayments />}
       {tab === "fullpayrecieved" && <FullPaymentRecievedTrips />}
