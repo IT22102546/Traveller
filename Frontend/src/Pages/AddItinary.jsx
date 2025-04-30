@@ -1,6 +1,18 @@
-import { Alert, Button, FileInput, Select, TextInput, Badge } from "flowbite-react";
+import {
+  Alert,
+  Button,
+  FileInput,
+  Select,
+  TextInput,
+  Badge,
+} from "flowbite-react";
 import { useEffect, useState } from "react";
-import { getDownloadURL, getStorage, ref, uploadBytesResumable } from "firebase/storage";
+import {
+  getDownloadURL,
+  getStorage,
+  ref,
+  uploadBytesResumable,
+} from "firebase/storage";
 import { app } from "../firebase";
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
@@ -19,15 +31,22 @@ export default function AddItinerary() {
   const [formData, setFormData] = useState({
     image: "",
     title: "",
-    categories: [],  
+    categories: [],
     averageTime: "",
-    averageCost: "",  
+    averageCost: "",
     location: "",
   });
   const [publishError, setPublishError] = useState(null);
   const navigate = useNavigate();
 
-  const categoryOptions = ["Adventure", "Culture", "Nature", "Luxury", "Food", "Relaxation"];
+  const categoryOptions = [
+    "Adventure",
+    "Culture",
+    "Nature",
+    "Luxury",
+    "Food",
+    "Relaxation",
+  ];
 
   // Handle multiple category selection
   const handleCategoryChange = (e) => {
@@ -58,16 +77,17 @@ export default function AddItinerary() {
       return;
     }
     setImageUploadError(null);
-  
+
     const storage = getStorage(app);
     const fileName = `${new Date().getTime()}-${file.name}`;
     const storageRef = ref(storage, `itinerary_images/${fileName}`); // Corrected reference
     const uploadTask = uploadBytesResumable(storageRef, file);
-  
+
     uploadTask.on(
       "state_changed",
       (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         setImageUploadProgress(progress.toFixed(0));
       },
       (error) => {
@@ -86,7 +106,6 @@ export default function AddItinerary() {
       }
     );
   };
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -115,71 +134,135 @@ export default function AddItinerary() {
   };
 
   return (
-    <div className="bg-green-200">
-      <div className="p-3 max-w-4xl mx-auto min-h-screen flex flex-col" data-aos="fade-up">
-        <h1 className="text-center text-3xl my-7 font-semibold">Add New Activity</h1>
+    <div className="bg-green-100">
+      <div
+        className="p-3 max-w-4xl mx-auto min-h-screen flex flex-col"
+        data-aos="fade-up"
+      >
+        <h1 className="text-left text-3xl my-7 font-semibold">
+          Add New Activity
+        </h1>
 
-        
         <div className="flex flex-col sm:flex-row gap-6">
-          
-      
           <form className="flex flex-col gap-4 w-full sm:w-3/4">
-            <TextInput type="text" placeholder="Title" required id="title"
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
-            
-          
+            <TextInput
+              type="text"
+              placeholder="Title"
+              required
+              id="title"
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
+            />
+
             <Select onChange={handleCategoryChange}>
               <option value="">Select Category</option>
               {categoryOptions.map((category) => (
-                <option key={category} value={category}>{category}</option>
+                <option key={category} value={category}>
+                  {category}
+                </option>
               ))}
             </Select>
 
-       
             <div className="flex flex-wrap gap-2">
               {formData.categories.map((category, index) => (
-                <Badge key={index} color="info" className="cursor-pointer" onClick={() => removeCategory(category)}>
+                <Badge
+                  key={index}
+                  color="info"
+                  className="cursor-pointer"
+                  onClick={() => removeCategory(category)}
+                >
                   {category} ×
                 </Badge>
               ))}
             </div>
 
-            <TextInput type="text" placeholder="Location" required id="location"
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
-            <TextInput type="text" placeholder="Average Time (in hours)" required id="averageTime"
-              onChange={(e) => setFormData({ ...formData, averageTime: e.target.value })} />
-            <TextInput type="text" placeholder="Average Cost ($)" required id="averageCost"
-              onChange={(e) => setFormData({ ...formData, averageCost: e.target.value })} />
+            <TextInput
+              type="text"
+              placeholder="Location"
+              required
+              id="location"
+              onChange={(e) =>
+                setFormData({ ...formData, location: e.target.value })
+              }
+            />
+            <TextInput
+              type="text"
+              placeholder="Average Time (in hours)"
+              required
+              id="averageTime"
+              onChange={(e) =>
+                setFormData({ ...formData, averageTime: e.target.value })
+              }
+            />
+            <TextInput
+              type="text"
+              placeholder="Average Cost ($)"
+              required
+              id="averageCost"
+              onChange={(e) =>
+                setFormData({ ...formData, averageCost: e.target.value })
+              }
+            />
 
-        
             <div className="flex flex-col sm:flex-row gap-2 items-center">
-              <FileInput type="file" accept="image/*" onChange={handleFileChange} className="w-full sm:w-auto" />
-              <Button onClick={handleUploadImage} type="button" className="bg-gray-400 w-full sm:w-auto" disabled={!!formData.image}>
+              <FileInput
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="w-full sm:w-auto"
+              />
+              <Button
+                onClick={handleUploadImage}
+                type="button"
+                className="bg-gray-400 w-full sm:w-auto"
+                disabled={!!formData.image}
+              >
                 {formData.image ? "Image Uploaded" : "Upload Image"}
               </Button>
             </div>
 
             {imageUploadProgress && (
               <div className="w-16 h-16">
-                <CircularProgressbar value={imageUploadProgress} text={`${imageUploadProgress}%`} />
+                <CircularProgressbar
+                  value={imageUploadProgress}
+                  text={`${imageUploadProgress}%`}
+                />
               </div>
             )}
 
-            {imageUploadError && <Alert color="failure">{imageUploadError}</Alert>}
+            {imageUploadError && (
+              <Alert color="failure">{imageUploadError}</Alert>
+            )}
 
             {formData.image && (
               <div className="mt-3 flex justify-center sm:justify-start">
-                <img src={formData.image} alt="Uploaded" className="w-32 h-32 object-cover rounded-md border" />
+                <img
+                  src={formData.image}
+                  alt="Uploaded"
+                  className="w-32 h-32 object-cover rounded-md border"
+                />
               </div>
             )}
 
             {publishError && <Alert color="failure">{publishError}</Alert>}
           </form>
 
-        
           <div className="flex flex-col justify-end w-full  sm:w-1/4">
-            <Button type="submit" className="bg-green-400 w-full sm:w-auto mb-2" onClick={handleSubmit}>Create</Button>
-            <Button type="button" className="bg-black w-full sm:w-auto" onClick={handleCancel}>Cancel</Button>
+            <Button
+              type="submit"
+              className="bg-green-400 w-full sm:w-auto mb-2"
+              onClick={handleSubmit}
+            >
+              Create
+            </Button>
+            <Button
+              type="button"
+              className="bg-black w-full sm:w-auto"
+              onClick={handleCancel}
+            >
+              Cancel
+            </Button>
           </div>
         </div>
       </div>

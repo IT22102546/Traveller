@@ -40,7 +40,7 @@ const MyPayments = ({ userId }) => {
 
   return (
     <div className="mx-auto">
-      <h1 className="text-3xl font-semibold mb-6">My Payments</h1>
+      <h1 className="text-3xl font-semibold mb-6 mt-10">My Payments</h1>
       {payments.length === 0 ? (
         <p className="text-lg text-gray-500">You have no payments.</p>
       ) : (

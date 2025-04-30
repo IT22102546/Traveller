@@ -2,9 +2,12 @@ import express from "express";
 import { verifyToken } from "../utils/verifyUser.js";
 import {
   createOrder,
+  deleteOrder,
+  getCompletedOrders,
   getOrder,
   getPendingOrdersWithPaidMembers,
   getUserPayments,
+  markOrderAsPaid,
   updatePaymentStatus,
 } from "../controllers/order.controller.js";
 import multer from "multer";
@@ -31,5 +34,12 @@ router.get(
   verifyToken,
   getPendingOrdersWithPaidMembers
 );
+
+//mark as paid by admin routes
+router.put("/:orderId/mark-as-paid", verifyToken, markOrderAsPaid);
+//get completed orders
+router.get("/orders/completed", verifyToken, getCompletedOrders);
+//deete order
+router.delete("/:orderId", verifyToken, deleteOrder);
 
 export default router;

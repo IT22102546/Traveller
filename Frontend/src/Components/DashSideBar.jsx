@@ -6,6 +6,8 @@ import {
   HiCurrencyDollar,
   HiCurrencyRupee,
   HiFlag,
+  HiInbox,
+  HiPaperAirplane,
   HiUser,
 } from "react-icons/hi";
 import { useDispatch, useSelector } from "react-redux";
@@ -79,10 +81,20 @@ export default function DashSideBar() {
               <Link to="/dashboard?tab=fullpayrecieved" key="fullpayrecieved">
                 <Sidebar.Item
                   active={tab === "fullpayrecieved"}
-                  icon={HiBookmark}
+                  icon={HiPaperAirplane}
                   as="div"
                 >
-                  Trip Full Payment
+                  Full Paid Trips
+                </Sidebar.Item>
+              </Link>
+
+              <Link to="/dashboard?tab=completedorders" key="completedorders">
+                <Sidebar.Item
+                  active={tab === "completedorders"}
+                  icon={HiInbox}
+                  as="div"
+                >
+                  Completed Orders
                 </Sidebar.Item>
               </Link>
             </>

@@ -7,51 +7,85 @@ function FullPaymentRecievedTrips() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch data from the route that gets orders where payment status is paid
-    fetch("/api/orders/orders/pending-with-paid-members")
-      .then((response) => {
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch(
+          "/api/orders/orders/pending-with-paid-members",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        if (response.status === 404) {
+          // No matching orders found — not a real error
+          setOrders([]);
+          setLoading(false);
+          return;
+        }
+
         if (!response.ok) {
+          // Real error (e.g. 500, 401)
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        return response.json();
-      })
-      .then((data) => {
-        setOrders(data.orders); // Assuming the response contains an array of orders
+
+        const data = await response.json();
+        setOrders(data.orders || []);
         setLoading(false);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Error fetching orders:", error.message);
-        setError("Failed to load orders. Please try again later.");
+        setError("An unexpected error occurred. Please try again later.");
         setLoading(false);
-      });
+      }
+    };
+
+    fetchOrders();
   }, []);
 
-  const handleEdit = (orderId) => {
-    // Handle edit logic here (you can redirect or open a modal)
-    console.log("Edit order with ID:", orderId);
+  const handleMarkAsPaid = async (orderId) => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}/mark-as-paid`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to mark order as paid");
+      }
+
+      alert("Order marked as paid!");
+
+      // Refresh the list
+      setOrders((prev) =>
+        prev.map((order) =>
+          order._id === orderId ? { ...order, orderStatus: "paid" } : order
+        )
+      );
+    } catch (error) {
+      console.error("Error:", error.message);
+      alert(error.message);
+    }
   };
 
-  const handleDelete = (orderId) => {
-    // Handle delete logic here
-    console.log("Delete order with ID:", orderId);
-  };
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>{error}</div>;
-  }
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
-    <div className="mx-auto ">
+    <div className="mx-auto">
       <h1 className="text-3xl font-semibold mb-6 mt-10">
         Full Payment Received Trips
       </h1>
+
       {orders.length === 0 ? (
         <p className="text-lg text-gray-500">
-          No full payment received trips found.
+          There are no pending orders where all members have completed their
+          payments.
         </p>
       ) : (
         <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
@@ -73,19 +107,15 @@ function FullPaymentRecievedTrips() {
                 <td className="px-6 py-4 border-t">{order._id}</td>
                 <td className="px-6 py-4 border-t">{order.itinerary.title}</td>
                 <td className="px-6 py-4 border-t">{order.totalAmount}</td>
-                <td className="px-6 py-4 border-t">{order.orderStatus}</td>
+                <td className="px-6 py-4 border-t text-red-700 font-semibold">
+                  {order.orderStatus}
+                </td>
                 <td className="px-6 py-4 border-t">
                   <button
-                    onClick={() => handleEdit(order._id)}
-                    className="bg-blue-500 text-white px-4 py-2 rounded mr-2 hover:bg-blue-600 transition-all"
+                    onClick={() => handleMarkAsPaid(order._id)}
+                    className="bg-green-600 text-white px-4 py-2 mr-1 rounded hover:bg-green-700 transition-all"
                   >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(order._id)}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-all"
-                  >
-                    Delete
+                    Mark as Paid
                   </button>
                 </td>
               </tr>
