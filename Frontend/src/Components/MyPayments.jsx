@@ -7,6 +7,8 @@ const MyPayments = ({ userId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { currentUser } = useSelector((state) => state.user);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   // console.log(currentUser?._id);
 
@@ -93,20 +95,73 @@ const MyPayments = ({ userId }) => {
                     <span className="text-gray-500">No Slip</span>
                   )}
                 </td>
-                <td className="px-6 py-4 border-t">
+                <td className="px-6 py-4 border-t space-x-2">
                   {payment.paymentStatus === "pending" && (
                     <Link
                       to={`/payment/${payment.orderId}`}
-                      className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-all"
+                      className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                     >
                       Pay Now
                     </Link>
                   )}
+                  <button
+                    onClick={() => {
+                      const fullOrder = payments.find(
+                        (p) => p.orderId === payment.orderId
+                      );
+                      setSelectedOrder(fullOrder);
+                      setShowModal(true);
+                    }}
+                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                  >
+                    View
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+      )}
+
+      {showModal && selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl shadow-lg">
+            <h2 className="text-xl font-bold mb-4">Trip Details</h2>
+            <p>
+              <strong>Itinerary:</strong> {selectedOrder.itinerary?.title}
+            </p>
+            <p>
+              <strong>Total Amount:</strong> Rs. {selectedOrder.totalAmount}
+            </p>
+            <p className="mt-4 font-semibold">Member Payments:</p>
+            <ul className="mt-2 space-y-1">
+              {selectedOrder.members?.map((member, idx) => (
+                <li key={idx} className="flex justify-between border-b py-1">
+                  <span>
+                    {member.username} ({member.email})
+                  </span>
+                  <span
+                    className={
+                      member.paymentStatus === "paid"
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }
+                  >
+                    {member.paymentStatus} - Rs. {member.paymentShare}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setShowModal(false)}
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

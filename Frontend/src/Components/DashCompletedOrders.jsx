@@ -13,7 +13,8 @@ function DashCompletedOrders() {
     })
       .then((res) => res.json())
       .then((data) => {
-        setOrders(data.orders);
+        setOrders(Array.isArray(data.orders) ? data.orders : []);
+
         setLoading(false);
       })
       .catch((err) => {

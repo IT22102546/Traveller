@@ -26,7 +26,11 @@ function FullPaymentRecievedTrips() {
         }
 
         if (!response.ok) {
-          // Real error (e.g. 500, 401)
+          if (response.status === 401) {
+            setError("Your session has expired. Please log in again.");
+            setLoading(false);
+            return;
+          }
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
@@ -74,7 +78,21 @@ function FullPaymentRecievedTrips() {
   };
 
   if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
+  if (error)
+    return (
+      <div className="text-red-600 text-center mt-10 mx-auto my-auto">
+        {error}
+        {error.toLowerCase().includes("log in") && (
+          <div className="mt-4 ">
+            <Link to="/sign-in" className=" text-white ">
+              <button className="bg-green-600 hover:text-bg-800 hover:cursor-pointer p-2 rounded-xl">
+                Go to Login
+              </button>
+            </Link>
+          </div>
+        )}
+      </div>
+    );
 
   return (
     <div className="mx-auto">
@@ -94,6 +112,8 @@ function FullPaymentRecievedTrips() {
               <th className="px-6 py-3">Order ID</th>
               <th className="px-6 py-3">Itinerary</th>
               <th className="px-6 py-3">Total Amount</th>
+              <th className="px-6 py-3">Members</th>
+              <th className="px-6 py-3">Proof</th>
               <th className="px-6 py-3">Order Status</th>
               <th className="px-6 py-3">Action</th>
             </tr>
@@ -107,6 +127,28 @@ function FullPaymentRecievedTrips() {
                 <td className="px-6 py-4 border-t">{order._id}</td>
                 <td className="px-6 py-4 border-t">{order.itinerary.title}</td>
                 <td className="px-6 py-4 border-t">{order.totalAmount}</td>
+
+                {/* Members Count */}
+                <td className="px-6 py-4 border-t">{order.members.length}</td>
+
+                {/* Proof Column: list each paid member with a receipt */}
+                <td className="px-6 py-4 border-t space-y-1">
+                  {order.members
+                    .filter((m) => m.paymentSlip)
+                    .map((member, idx) => (
+                      <div key={idx}>
+                        <a
+                          href={member.paymentSlip}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          {member.username}'s slip
+                        </a>
+                      </div>
+                    ))}
+                </td>
+
                 <td className="px-6 py-4 border-t text-red-700 font-semibold">
                   {order.orderStatus}
                 </td>
