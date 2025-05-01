@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
+import { useNavigate } from 'react-router-dom'; // Added for navigation
+import { useSelector } from 'react-redux';
 
 function HomePage() {
+  const navigate = useNavigate();
+  const { currentUser } = useSelector((state) => state.user);
+
   // Animation variants
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
@@ -46,6 +51,17 @@ function HomePage() {
     }
   ];
 
+
+  const handleBookNow = (packageId) => {
+    if (!currentUser) {
+      navigate('/sign-in');
+      return;
+    }
+    
+    navigate(`/order/${packageId}`);
+  };
+
+
   useEffect(() => {
     const fetchTravelData = async () => {
       try {
@@ -61,8 +77,8 @@ function HomePage() {
         
         const data = await response.json();
         
-        
         const formattedPackages = data.map(item => ({
+          id: item._id, 
           title: item.title,  
           price: item.averageCost,  
           description: `${item.averageTime} in ${item.location}`,  
@@ -76,9 +92,9 @@ function HomePage() {
         setError(err.message);
         setLoading(false);
         
-      
         setPackages([
           {
+            id: "demo1",
             title: "Bali Getaway",
             price: "$1,499",
             description: "7 days in Bali",
@@ -86,6 +102,7 @@ function HomePage() {
             categories: ["Beach", "Luxury"]
           },
           {
+            id: "demo2",
             title: "Japan Explorer",
             price: "$2,799",
             description: "10 days in Japan",
@@ -93,6 +110,7 @@ function HomePage() {
             categories: ["Cultural", "Adventure"]
           },
           {
+            id: "demo3",
             title: "Swiss Alps Adventure",
             price: "$1,899",
             description: "6 days in Swiss Alps",
@@ -224,6 +242,8 @@ function HomePage() {
       </section>
 
       
+     
+   
       <section ref={packagesRef} className="py-20 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           <motion.div
@@ -260,7 +280,7 @@ function HomePage() {
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="text-xl font-bold">{pkg.title}</h3>
                       <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-semibold">
-                        {pkg.price}
+                        {pkg.price} Per Person
                       </span>
                     </div>
                     <p className="text-gray-600 mb-2">{pkg.description}</p>
@@ -271,7 +291,10 @@ function HomePage() {
                         </span>
                       ))}
                     </div>
-                    <button className="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg transition-all">
+                    <button 
+                      onClick={() => handleBookNow(pkg.id)} // Updated to use handleBookNow
+                      className="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg transition-all"
+                    >
                       Book Now
                     </button>
                   </div>
@@ -279,46 +302,6 @@ function HomePage() {
               ))}
             </div>
           )}
-        </div>
-      </section>
-   
-      <section className="py-16 px-4 bg-gray-800 text-white">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div>
-            <h3 className="text-xl font-bold mb-4">Quick Links</h3>
-            <ul className="space-y-2">
-              <li><a href="#" className="hover:text-amber-400 transition-colors">Home</a></li>
-              <li><a href="#" className="hover:text-amber-400 transition-colors">Blog</a></li>
-              <li><a href="#" className="hover:text-amber-400 transition-colors">Destinations</a></li>
-              <li><a href="#" className="hover:text-amber-400 transition-colors">Special Offers</a></li>
-              <li><a href="#" className="hover:text-amber-400 transition-colors">Create Account</a></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h3 className="text-xl font-bold mb-4">Contact Us</h3>
-            <address className="not-italic">
-              <p className="mb-2">123 Travel Street</p>
-              <p className="mb-2">Adventure City, AC 12345</p>
-              <p className="mb-2">Phone: (123) 456-7890</p>
-              <p>Email: info@travelcommunity.com</p>
-            </address>
-          </div>
-          
-          <div>
-            <h3 className="text-xl font-bold mb-4">Newsletter</h3>
-            <p className="mb-4">Subscribe for travel tips and exclusive deals</p>
-            <div className="flex">
-              <input 
-                type="email" 
-                placeholder="Your email" 
-                className="px-4 py-2 rounded-l-lg flex-grow text-gray-800"
-              />
-              <button className="bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-r-lg transition-colors">
-                Subscribe
-              </button>
-            </div>
-          </div>
         </div>
       </section>
 

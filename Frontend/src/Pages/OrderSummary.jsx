@@ -1,7 +1,7 @@
-// OrderSummary.js
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button } from 'flowbite-react';
+import { Button, Spinner, Alert } from 'flowbite-react';
+import { HiOutlineUserAdd, HiOutlineX, HiOutlineCalendar, HiOutlineUsers, HiOutlineCash, HiOutlineCheckCircle } from 'react-icons/hi';
 import { useSelector } from 'react-redux';
 
 export default function OrderSummary() {
@@ -12,6 +12,8 @@ export default function OrderSummary() {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const { currentUser } = useSelector(state => state.user);
   const [formData, setFormData] = useState({
     date: '',
@@ -19,33 +21,35 @@ export default function OrderSummary() {
   });
 
   useEffect(() => {
-    const fetchItinerary = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch(`/api/itinary/${id}`);
-        const data = await res.json();
-        if (res.ok) {
-          setItinerary(data);
+        setLoading(true);
+        const [itineraryRes, usersRes] = await Promise.all([
+          fetch(`/api/itinary/${id}`),
+          fetch('/api/user/users')
+        ]);
+
+        if (!itineraryRes.ok || !usersRes.ok) {
+          throw new Error('Failed to fetch data');
         }
+
+        const [itineraryData, usersData] = await Promise.all([
+          itineraryRes.json(),
+          usersRes.json()
+        ]);
+
+        setItinerary(itineraryData);
+        setAllUsers(usersData);
+        setFilteredUsers(usersData);
       } catch (error) {
-        console.error('Error fetching itinerary:', error);
+        setError(error.message);
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    const fetchUsers = async () => {
-      try {
-        const res = await fetch('/api/user/users');
-        const data = await res.json();
-        if (res.ok) {
-          setAllUsers(data);
-          setFilteredUsers(data);
-        }
-      } catch (error) {
-        console.error('Error fetching users:', error);
-      }
-    };
-
-    fetchItinerary();
-    fetchUsers();
+    fetchData();
   }, [id]);
 
   useEffect(() => {
@@ -74,7 +78,7 @@ export default function OrderSummary() {
     }));
 
     if (name === 'numberOfMembers') {
-      setSelectedUsers(currentUser ? [currentUser._id] : []);
+      setSelectedUsers(prev => prev.includes(currentUser._id) ? [currentUser._id] : []);
     }
   };
 
@@ -83,25 +87,26 @@ export default function OrderSummary() {
   };
 
   const addUser = (userId) => {
-    if (!selectedUsers.includes(userId) && selectedUsers.length < formData.numberOfMembers) {
-      setSelectedUsers([...selectedUsers, userId]);
+    if (!selectedUsers.includes(userId)) {
+      setSelectedUsers(prev => [...prev, userId]);
       setSearchTerm('');
     }
   };
 
   const removeUser = (userId) => {
     if (userId !== currentUser._id) {
-      setSelectedUsers(selectedUsers.filter(id => id !== userId));
+      setSelectedUsers(prev => prev.filter(id => id !== userId));
     }
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     
     try {
       const costPerPerson = parseFloat(itinerary.averageCost.replace(/[^0-9.]/g, ''));
       const totalAmount = costPerPerson * formData.numberOfMembers;
-  
-      // Prepare member details (simplified from your original)
+
       const memberDetails = selectedUsers.map(userId => {
         const user = allUsers.find(u => u._id === userId);
         return {
@@ -111,40 +116,38 @@ export default function OrderSummary() {
           paymentStatus: 'pending'
         };
       });
-  
+
       const orderData = {
-        itinerary: itinerary._id, // Just send the ID, let backend populate
+        itinerary: itinerary._id,
         date: formData.date,
         numberOfMembers: formData.numberOfMembers,
         members: memberDetails,
         totalAmount,
         createdBy: currentUser._id
       };
-  
-      // Make the API call to create the order
+
       const response = await fetch('/api/orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}` // Add auth token
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify(orderData)
       });
-  
+
       if (!response.ok) {
         throw new Error('Failed to create order');
       }
-  
+
       const createdOrder = await response.json();
-      navigate(`/payment/${createdOrder._id}`); // Navigate to payment with order ID
-  
+      navigate(`/payment/${createdOrder._id}`);
     } catch (error) {
-      console.error('Order creation failed:', error);
-      // Add error handling UI here
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // ✅ Check if the form is fully valid
   const isFormValid = () => {
     const today = new Date().toISOString().split('T')[0];
     return (
@@ -155,128 +158,214 @@ export default function OrderSummary() {
     );
   };
 
-  if (!itinerary) return <div>Loading...</div>;
+  if (loading && !itinerary) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spinner size="xl" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <Alert color="failure">
+          {error}
+        </Alert>
+      </div>
+    );
+  }
+
+  if (!itinerary) return null;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h2 className="text-3xl font-bold text-center text-teal-600 mb-6">Order Summary</h2>
-
-      <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
-        <h3 className="text-xl font-semibold mb-2">{itinerary.title}</h3>
-        <p className="text-gray-600 mb-4">{itinerary.location}</p>
-        <p className="text-gray-800 font-bold">Cost Per Person: {itinerary.averageCost}</p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-6">
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-2">Trip Date</label>
-          <input
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleInputChange}
-            className="w-full p-2 border rounded"
-            required
-            min={new Date().toISOString().split('T')[0]}
-          />
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Order Summary</h1>
+          <p className="mt-2 text-lg text-gray-600">Review your trip details before proceeding to payment</p>
         </div>
 
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-2">Number of Members</label>
-          <input
-            type="number"
-            name="numberOfMembers"
-            value={formData.numberOfMembers}
-            onChange={handleInputChange}
-            className="w-full p-2 border rounded"
-            required
-            min={1}
-          />
-        </div>
+        <div className="bg-white shadow-lg rounded-xl overflow-hidden">
+          {/* Itinerary Summary Card */}
+          <div className="bg-gradient-to-r from-teal-500 to-teal-600 p-6 text-white">
+            <h2 className="text-2xl font-bold mb-2">{itinerary.title}</h2>
+            <p className="text-teal-100 mb-4">{itinerary.location}</p>
+            <div className="flex items-center space-x-4">
+              <span className="inline-flex items-center px-3 py-1 rounded-full bg-teal-700 text-teal-100">
+                <HiOutlineCheckCircle className="mr-1" />
+                Available
+              </span>
+              <span className="text-xl font-semibold">{itinerary.averageCost} Per Person</span>
+            </div>
+          </div>
 
-        {formData.numberOfMembers > 1 && (
-          <div className="mb-6">
-            <label className="block text-gray-700 mb-2">
-              Select Members ({selectedUsers.length}/{formData.numberOfMembers})
-            </label>
+          <div className="p-6">
+            <form onSubmit={handleSubmit}>
+              <div className="space-y-6">
+                {/* Date Selection */}
+                <div className="border-b border-gray-200 pb-6">
+                  <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                    <HiOutlineCalendar className="mr-2 text-teal-600" />
+                    Trip Date
+                  </h3>
+                  <div className="mt-4">
+                    <input
+                      type="date"
+                      name="date"
+                      value={formData.date}
+                      onChange={handleInputChange}
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm p-2 border"
+                      required
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                </div>
 
-            {/* Selected Users */}
-            {selectedUsers.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-4">
-                {selectedUsers.map(userId => {
-                  const user = allUsers.find(u => u._id === userId);
-                  return user ? (
-                    <div
-                      key={userId}
-                      className="bg-teal-100 rounded-full px-3 py-1 flex items-center"
-                    >
-                      <span className="mr-2">{user.username}</span>
-                      {userId !== currentUser._id && (
-                        <button
-                          type="button"
-                          onClick={() => removeUser(userId)}
-                          className="text-teal-700 hover:text-teal-900"
-                        >
-                          &times;
-                        </button>
+                {/* Number of Members */}
+                <div className="border-b border-gray-200 pb-6">
+                  <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                    <HiOutlineUsers className="mr-2 text-teal-600" />
+                    Group Size
+                  </h3>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Number of Travelers
+                    </label>
+                    <input
+                      type="number"
+                      name="numberOfMembers"
+                      value={formData.numberOfMembers}
+                      onChange={handleInputChange}
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm p-2 border"
+                      required
+                      min={1}
+                    />
+                  </div>
+                </div>
+
+                {/* Member Selection */}
+                {formData.numberOfMembers > 1 && (
+                  <div className="border-b border-gray-200 pb-6">
+                    <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                      <HiOutlineUserAdd className="mr-2 text-teal-600" />
+                      Select Group Members ({selectedUsers.length}/{formData.numberOfMembers})
+                    </h3>
+                    <div className="mt-4 space-y-4">
+                      {/* Selected Users */}
+                      <div className="flex flex-wrap gap-2">
+                        {selectedUsers.map(userId => {
+                          const user = allUsers.find(u => u._id === userId);
+                          return user ? (
+                            <div
+                              key={userId}
+                              className="inline-flex items-center bg-teal-100 text-teal-800 rounded-full px-3 py-1 text-sm font-medium"
+                            >
+                              {user.username}
+                              {userId !== currentUser._id && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeUser(userId)}
+                                  className="ml-1 text-teal-600 hover:text-teal-900"
+                                >
+                                  <HiOutlineX />
+                                </button>
+                              )}
+                            </div>
+                          ) : null;
+                        })}
+                      </div>
+
+                      {/* User Search */}
+                      {selectedUsers.length < formData.numberOfMembers && (
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Search users by name or email"
+                            value={searchTerm}
+                            onChange={handleSearchChange}
+                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm p-2 border"
+                          />
+                        </div>
+                      )}
+
+                      {/* Search Results */}
+                      {searchTerm && selectedUsers.length < formData.numberOfMembers && (
+                        <div className="border border-gray-200 rounded-lg max-h-60 overflow-y-auto">
+                          {filteredUsers.filter(user => !selectedUsers.includes(user._id)).length > 0 ? (
+                            filteredUsers
+                              .filter(user => !selectedUsers.includes(user._id))
+                              .map(user => (
+                                <div
+                                  key={user._id}
+                                  className="p-3 hover:bg-gray-50 cursor-pointer flex justify-between items-center border-b border-gray-100 last:border-0"
+                                  onClick={() => addUser(user._id)}
+                                >
+                                  <div>
+                                    <p className="font-medium text-gray-900">{user.username}</p>
+                                    <p className="text-sm text-gray-500">{user.email}</p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="text-teal-600 hover:text-teal-800"
+                                  >
+                                    <HiOutlineUserAdd />
+                                  </button>
+                                </div>
+                              ))
+                          ) : (
+                            <div className="p-3 text-center text-gray-500">No users found</div>
+                          )}
+                        </div>
                       )}
                     </div>
-                  ) : null;
-                })}
-              </div>
-            )}
-
-            <div className="mb-4">
-              <input
-                type="text"
-                placeholder="Search users by name or email"
-                value={searchTerm}
-                onChange={handleSearchChange}
-                className="w-full p-2 border rounded"
-                disabled={selectedUsers.length >= formData.numberOfMembers}
-              />
-            </div>
-
-            {searchTerm && selectedUsers.length < formData.numberOfMembers && (
-              <div className="max-h-60 overflow-y-auto border rounded p-2">
-                {filteredUsers.length > 0 ? (
-                  filteredUsers
-                    .filter(user => !selectedUsers.includes(user._id))
-                    .map(user => (
-                      <div
-                        key={user._id}
-                        className="p-2 mb-2 rounded cursor-pointer hover:bg-gray-100"
-                        onClick={() => addUser(user._id)}
-                      >
-                        {user.username} ({user.email})
-                      </div>
-                    ))
-                ) : (
-                  <div className="p-2 text-gray-500">No users found</div>
+                  </div>
                 )}
+
+                {/* Payment Summary */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-medium text-gray-900 flex items-center mb-4">
+                    <HiOutlineCash className="mr-2 text-teal-600" />
+                    Payment Summary
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Cost per person:</span>
+                      <span className="font-medium">Rs.{itinerary.averageCost}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Number of travelers:</span>
+                      <span className="font-medium">{formData.numberOfMembers}</span>
+                    </div>
+                    <div className="border-t border-gray-200 pt-2 mt-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-900 font-semibold">Total Amount:</span>
+                        <span className="text-xl font-bold text-teal-600">
+                          Rs.{parseFloat(itinerary.averageCost.replace(/[^0-9.]/g, '')) * formData.numberOfMembers} 
+                          {itinerary.averageCost.replace(/[0-9.,]/g, '')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <div className="pt-4">
+                  <Button
+                    type="submit"
+                    color="success"
+                    className="w-full py-3 px-4 text-lg font-medium"
+                    disabled={!isFormValid() || loading}
+                    isProcessing={loading}
+                  >
+                    {loading ? 'Processing...' : 'Proceed to Payment'}
+                  </Button>
+                </div>
               </div>
-            )}
+            </form>
           </div>
-        )}
-
-        <div className="bg-gray-50 p-4 rounded-lg mb-4">
-          <h4 className="font-semibold mb-2">Payment Summary</h4>
-          <p>Cost per person: {itinerary.averageCost}</p>
-          <p>Number of people: {formData.numberOfMembers}</p>
-          <p className="font-bold mt-2">
-            Total Amount: {parseFloat(itinerary.averageCost.replace(/[^0-9.]/g, '')) * formData.numberOfMembers} {itinerary.averageCost.replace(/[0-9.,]/g, '')}
-          </p>
         </div>
-
-        <Button
-          type="submit"
-          color="success"
-          className="w-full"
-          disabled={!isFormValid()} // ✅ disable button if form invalid
-        >
-          Proceed to Payment
-        </Button>
-      </form>
+      </div>
     </div>
   );
 }
