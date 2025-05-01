@@ -204,7 +204,8 @@ export const getUserPayments = async (req, res, next) => {
         totalAmount: order.totalAmount,
         paymentStatus: member.paymentStatus,
         paymentShare: member.paymentShare,
-        paymentSlip: member.paymentSlip, // Optional to show the payment slip URL
+        paymentSlip: member.paymentSlip,
+        members: order.members,
       };
     });
 
