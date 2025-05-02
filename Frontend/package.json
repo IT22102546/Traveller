@@ -23,6 +23,7 @@
     "framer-motion": "^11.18.2",
     "html2pdf.js": "^0.10.2",
     "install": "^0.13.0",
+    "jspdf": "^3.0.1",
     "npm": "^10.9.2",
     "query-string": "^9.1.0",
     "react": "^18.3.1",
