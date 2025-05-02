@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 function HomePage() {
   const navigate = useNavigate();
   const { currentUser } = useSelector((state) => state.user);
+  
 
   // Animation variants
   const fadeIn = {
@@ -17,13 +18,11 @@ function HomePage() {
   const [heroRef, heroInView] = useInView({ threshold: 0.1, triggerOnce: true });
   const [benefitsRef, benefitsInView] = useInView({ threshold: 0.1, triggerOnce: true });
   const [packagesRef, packagesInView] = useInView({ threshold: 0.1, triggerOnce: true });
-
-  // State for packages data
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Benefits data
+  
   const benefits = [
     {
       title: "Exclusive Deals",
@@ -142,10 +141,11 @@ function HomePage() {
           <p className="text-xl md:text-2xl text-white mb-8 max-w-2xl mx-auto">
             Join a community of passionate travelers exploring the world
           </p>
-          <motion.button 
+          <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-8 rounded-full text-lg transition-all"
+            onClick={() => navigate('/sign-up')}
           >
             Join Our Community →
           </motion.button>
