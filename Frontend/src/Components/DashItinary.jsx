@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { jsPDF } from "jspdf"; // Import jsPDF
 
 export default function DashItinary() {
   const { currentUser } = useSelector((state) => state.user);
@@ -49,6 +50,38 @@ export default function DashItinary() {
     setSearchTerm(e.target.value);
   };
 
+  // Generate PDF Report
+  const generateReport = () => {
+    const doc = new jsPDF();
+
+    // Add title
+    doc.setFontSize(18);
+    doc.text("Itinerary Report", 14, 20);
+
+    // Add filter/search term to the report
+    doc.setFontSize(12);
+    doc.text(`Search Term: ${searchTerm || "All"}`, 14, 30);
+
+    // Add table header
+    doc.text("Title", 14, 40);
+    doc.text("Categories", 50, 40);
+    doc.text("Location", 120, 40);
+    doc.text("Average Cost", 160, 40);
+
+    // Add itinerary data
+    let yPosition = 50;
+    itineraries.forEach((itinerary) => {
+      doc.text(itinerary.title, 14, yPosition);
+      doc.text(itinerary.categories.join(", "), 50, yPosition);
+      doc.text(itinerary.location, 120, yPosition);
+      doc.text(itinerary.averageCost.toString(), 160, yPosition);
+      yPosition += 10;
+    });
+
+    // Save the document as a PDF
+    doc.save("itinerary_report.pdf");
+  };
+
   return (
     <div className="table-auto overflow-x-scroll md:mx-auto p-3 mt-10">
       <div className="flex justify-between mb-2">
@@ -59,6 +92,14 @@ export default function DashItinary() {
           onChange={handleSearch}
           className="px-3 py-2 w-150 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 mr-2 h-10"
         />
+
+        {/* Generate Report Button */}
+        <button
+          onClick={generateReport}
+          className="bg-green-500 hover:bg-green-600 px-4 rounded-xl text-white"
+        >
+          Generate Report
+        </button>
       </div>
 
       {currentUser.isAdmin && itineraries.length > 0 ? (
@@ -114,6 +155,7 @@ export default function DashItinary() {
       ) : (
         <p>No itineraries available</p>
       )}
+
       <Modal
         show={showModal}
         onClose={() => setShowModal(false)}

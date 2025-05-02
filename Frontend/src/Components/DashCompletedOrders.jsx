@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { jsPDF } from "jspdf"; // Import jsPDF
 
 function DashCompletedOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetch("/api/orders/orders/completed", {
@@ -14,7 +16,6 @@ function DashCompletedOrders() {
       .then((res) => res.json())
       .then((data) => {
         setOrders(Array.isArray(data.orders) ? data.orders : []);
-
         setLoading(false);
       })
       .catch((err) => {
@@ -47,14 +48,68 @@ function DashCompletedOrders() {
     }
   };
 
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const filteredOrders = orders.filter((order) =>
+    order.itinerary.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const generateReport = () => {
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text("Completed Orders Report", 14, 20);
+
+    doc.setFontSize(12);
+    doc.text(`Search Term: ${searchTerm || "All"}`, 14, 30);
+
+    doc.text("Order ID", 14, 40);
+    doc.text("Itinerary", 40, 40);
+    doc.text("Total Amount", 100, 40);
+    doc.text("Order Status", 160, 40);
+
+    let yPosition = 50;
+    filteredOrders.forEach((order) => {
+      doc.text(order.itinerary.title, 40, yPosition);
+      doc.text(order.totalAmount.toString(), 100, yPosition);
+      doc.text(order.orderStatus, 160, yPosition);
+      yPosition += 10;
+    });
+
+    doc.save("completed_orders_report.pdf");
+  };
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
   return (
     <div className="mx-auto">
       <h1 className="text-3xl font-semibold mb-6 mt-10">Completed Orders</h1>
-      {orders.length === 0 ? (
-        <p className="text-lg text-gray-500">No completed orders found.</p>
+
+      <div className="flex justify-between mb-4">
+        <input
+          type="text"
+          placeholder="Search Itineraries..."
+          value={searchTerm}
+          onChange={handleSearch}
+          className="px-3 py-2 w-96 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+        />
+
+        {/* Generate Report Button */}
+        <button
+          onClick={generateReport}
+          className="bg-green-500 hover:bg-green-600 px-4 rounded-xl text-white"
+        >
+          Generate Report
+        </button>
+      </div>
+
+      {filteredOrders.length === 0 ? (
+        <p className="text-lg text-gray-500">
+          No matching completed orders found.
+        </p>
       ) : (
         <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
           <thead className="bg-gray-100 text-left text-sm text-gray-600">
@@ -67,7 +122,7 @@ function DashCompletedOrders() {
             </tr>
           </thead>
           <tbody className="text-sm text-gray-700">
-            {orders.map((order) => (
+            {filteredOrders.map((order) => (
               <tr
                 key={order._id}
                 className="hover:bg-gray-50 transition-all duration-200"

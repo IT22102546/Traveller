@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { jsPDF } from "jspdf"; // Import jsPDF
 
 const MyPayments = ({ userId }) => {
   const [payments, setPayments] = useState([]);
@@ -9,11 +10,9 @@ const MyPayments = ({ userId }) => {
   const { currentUser } = useSelector((state) => state.user);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
-
-  // console.log(currentUser?._id);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    // Fetch payment status data from API using fetch
     fetch(`/api/orders/${currentUser?._id}/my-payments`)
       .then((response) => {
         if (!response.ok) {
@@ -32,6 +31,51 @@ const MyPayments = ({ userId }) => {
       });
   }, [userId]);
 
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const filteredPayments = payments.filter(
+    (payment) =>
+      payment.itinerary.title
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      payment.orderId.toString().includes(searchTerm)
+  );
+
+  // Generate PDF Report
+  const generateReport = () => {
+    const doc = new jsPDF();
+
+    // Add title
+    doc.setFontSize(18);
+    doc.text("My Payments Report", 14, 20);
+
+    // Add filter/search term to the report
+    doc.setFontSize(12);
+    doc.text(`Search Term: ${searchTerm || "All"}`, 14, 30);
+
+    // Add table header
+
+    doc.text("Itinerary", 40, 40);
+    doc.text("Total Amount", 100, 40);
+    doc.text("Your Share", 140, 40);
+    doc.text("Payment Status", 180, 40);
+
+    // Add payment data
+    let yPosition = 50;
+    filteredPayments.forEach((payment) => {
+      doc.text(payment.itinerary.title, 40, yPosition);
+      doc.text(payment.totalAmount.toString(), 100, yPosition);
+      doc.text(payment.paymentShare.toString(), 140, yPosition);
+      doc.text(payment.paymentStatus, 180, yPosition);
+      yPosition += 10;
+    });
+
+    // Save the document as a PDF
+    doc.save("my_payments_report.pdf");
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -43,8 +87,30 @@ const MyPayments = ({ userId }) => {
   return (
     <div className="mx-auto">
       <h1 className="text-3xl font-semibold mb-6 mt-10">My Payments</h1>
-      {payments.length === 0 ? (
-        <p className="text-lg text-gray-500">You have no payments.</p>
+
+      {/* Search Input */}
+      <div className="flex justify-between mb-4">
+        <input
+          type="text"
+          placeholder="Search by Order ID or Itinerary..."
+          value={searchTerm}
+          onChange={handleSearch}
+          className="px-3 py-2 w-96 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+        />
+
+        {/* Generate Report Button */}
+        <button
+          onClick={generateReport}
+          className="bg-green-500 hover:bg-green-600 px-4 rounded-xl text-white"
+        >
+          Generate Report
+        </button>
+      </div>
+
+      {filteredPayments.length === 0 ? (
+        <p className="text-lg text-gray-500">
+          You have no payments matching the search.
+        </p>
       ) : (
         <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
           <thead className="bg-gray-100 text-left text-sm text-gray-600">
@@ -59,7 +125,7 @@ const MyPayments = ({ userId }) => {
             </tr>
           </thead>
           <tbody className="text-sm text-gray-700">
-            {payments.map((payment) => (
+            {filteredPayments.map((payment) => (
               <tr
                 key={payment.orderId}
                 className="hover:bg-gray-50 transition-all duration-200"
