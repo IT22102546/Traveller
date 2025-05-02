@@ -53,34 +53,53 @@ export default function DashItinary() {
   // Generate PDF Report
   const generateReport = () => {
     const doc = new jsPDF();
-
-    // Add title
+    const startX = 14;
+    let startY = 20;
+    const lineHeight = 10;
+  
+    // Title
     doc.setFontSize(18);
-    doc.text("Itinerary Report", 14, 20);
-
-    // Add filter/search term to the report
+    doc.text("Itinerary Report", startX, startY);
+  
+    // Search term
+    startY += lineHeight;
     doc.setFontSize(12);
-    doc.text(`Search Term: ${searchTerm || "All"}`, 14, 30);
-
-    // Add table header
-    doc.text("Title", 14, 40);
-    doc.text("Categories", 50, 40);
-    doc.text("Location", 120, 40);
-    doc.text("Average Cost", 160, 40);
-
-    // Add itinerary data
-    let yPosition = 50;
+    doc.text(`Search Term: ${searchTerm || "All"}`, startX, startY);
+  
+    // Table headers
+    startY += lineHeight;
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("Title", startX, startY);
+    doc.text("Categories", startX + 40, startY);
+    doc.text("Location", startX + 90, startY);
+    doc.text("Avg Time", startX + 130, startY);
+    doc.text("Avg Cost", startX + 160, startY);
+  
+    // Reset font for table content
+    doc.setFont("helvetica", "normal");
+  
+    // Table data
+    startY += 6;
     itineraries.forEach((itinerary) => {
-      doc.text(itinerary.title, 14, yPosition);
-      doc.text(itinerary.categories.join(", "), 50, yPosition);
-      doc.text(itinerary.location, 120, yPosition);
-      doc.text(itinerary.averageCost.toString(), 160, yPosition);
-      yPosition += 10;
+      doc.text(itinerary.title || "-", startX, startY);
+      doc.text((itinerary.categories || []).join(", ") || "-", startX + 40, startY);
+      doc.text(itinerary.location || "-", startX + 90, startY);
+      doc.text(itinerary.averageTime?.toString() || "-", startX + 130, startY);
+      doc.text(itinerary.averageCost?.toString() || "-", startX + 160, startY);
+      startY += 8;
+  
+      // Create a new page if content exceeds page height
+      if (startY > 280) {
+        doc.addPage();
+        startY = 20;
+      }
     });
-
-    // Save the document as a PDF
+  
+    
     doc.save("itinerary_report.pdf");
   };
+  
 
   return (
     <div className="table-auto overflow-x-scroll md:mx-auto p-3 mt-20">
