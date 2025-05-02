@@ -83,7 +83,7 @@ export default function DashItinary() {
   };
 
   return (
-    <div className="table-auto overflow-x-scroll md:mx-auto p-3 mt-10">
+    <div className="table-auto overflow-x-scroll md:mx-auto p-3 mt-20">
       <div className="flex justify-between mb-2">
         <input
           type="text"
